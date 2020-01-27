@@ -108,6 +108,10 @@
       var fundAllocation = parseFloat(document.getElementById('fundAllocation').value);
       var fund = new Fund(fundName, fundPrice, fundQuantity, fundAllocation);
       portfolio.add(fund);
+      document.getElementById('fundName').value = "";
+      document.getElementById('fundPrice').value = "";
+      document.getElementById('fundQuantity').value = "";
+      document.getElementById('fundAllocation').value = "";
       clearFundsTable();
       displayPortfolio();
     }
