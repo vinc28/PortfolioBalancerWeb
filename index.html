@@ -3,26 +3,31 @@
 <head>
   <style>
     body {
-        background-color: rgb(209, 201, 193);
-      }
+      background-color: rgb(194, 194, 194);
+    }
 
-      input,
-      label {
-        display: block;
-      }
-    
-      table, {
-        border: 1px solid black;
-        border-collapse: collapse;
-        width: 100%;
-      }
+    input,
+    label {
+      display: block;
+    }
 
-      td, th {
-        border: 1px solid #000000;
-        text-align: left;
-        padding: 5px;
-      }
-    </style>
+    table {
+      border: 1px solid black;
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    td,
+    th {
+      border: 1px solid #000000;
+      text-align: left;
+      padding: 5px;
+    }
+
+    piechart {
+      background-color:rgb(194, 194, 194);
+    }
+  </style>
 </head>
 <header>
   <h1>
@@ -34,7 +39,8 @@
 </header>
 
 <body>
-  <script>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script type="text/javascript">
     class Fund {
       constructor(fundName, price, currentQuantity, targetAllocation) {
         this.fundName = fundName;
@@ -80,8 +86,7 @@
 
       getChangesToBalance(contribution) {
         if (this.getTotalAllocations() != 100) {
-          if(this.getTotalAllocations() > 100)
-          {
+          if (this.getTotalAllocations() > 100) {
             throw "Allocations exceed 100."
           }
           throw "Allocations do not sum to 100.";
@@ -126,9 +131,15 @@
     }
 
     function displayPortfolio() {
+      var fundArray = [['Fund Name', 'Percentage']];
+      var currentPortfolioTotal = 0;
       for (var i = 0; i < portfolio.funds.length; i++) {
         addFundToTable(portfolio.funds[i]);
+        var fundTotalValue = portfolio.funds[i].price * portfolio.funds[i].currentQuantity;
+        currentPortfolioTotal += fundTotalValue;
+        fundArray.push([portfolio.funds[i].fundName, portfolio.funds[i].totalValue()]);
       }
+      drawChart(fundArray);
     }
 
     function addFundToTable(fund) {
@@ -149,6 +160,7 @@
     function clearPortfolio() {
       clearFundsTable();
       portfolio = new Portfolio();
+      document.getElementById("piechart").innerHTML = "";
     }
 
     function getActions() {
@@ -156,26 +168,40 @@
       try {
         var actions = Object.entries(portfolio.getChangesToBalance(contribution));
         var result = "";
-        for(const action of actions)
-        {
+        for (const action of actions) {
           var buyOrSell = "Buy";
-           if(action[1] < 0)
-           {
-             buyOrSell = "Sell";
-           }
-           result += buyOrSell + " " + Math.abs(action[1]) + " units of " + action[0] + "<br>";
+          if (action[1] < 0) {
+            buyOrSell = "Sell";
+          }
+          result += buyOrSell + " " + Math.abs(action[1]) + " units of " + action[0] + "<br>";
         }
         var element = document.getElementById("actions");
         element.innerHTML = result;
       }
       catch (err) {
         var element = document.getElementById("actions");
-        if(err.includes("exceed"))
-        {
-           clearPortfolio();
+        if (err.includes("exceed")) {
+          clearPortfolio();
         }
         element.innerHTML = err;
       }
+    }
+
+    // Load google charts
+    google.charts.load('current', { 'packages': ['corechart'] });
+    // google.charts.setOnLoadCallback(drawChart);
+
+    // Draw the chart and set the chart values
+    function drawChart(array) {
+      console.log(array);
+      var data = google.visualization.arrayToDataTable(array);
+
+      // set the width and height of the chart
+      var options = { 'width': 550, 'height': 400, backgroundColor: 'rgb(194, 194, 194)', };
+
+      // Display the chart inside the <div> element with id="piechart"
+      var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+      chart.draw(data, options);
     }
   </script>
 
@@ -208,6 +234,8 @@
       <th>Target Allocation</th>
     </tr>
   </table>
+  <br>
+  <div id="piechart"></div>
   <br>
   <button onclick="clearPortfolio();">Clear portfolio</button>
   <br>
